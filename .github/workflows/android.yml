@@ -19,15 +19,24 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        
       - name: Create Android Project
         run: |
           # Создаем структуру проекта
           mkdir -p app/src/main/java/com/adelina/app/
           mkdir -p app/src/main/res/layout/
           mkdir -p gradle/wrapper/
+          
+          # Скачиваем gradle-wrapper.jar
+          wget -q https://repo.maven.apache.org/maven2/org/gradle/gradle/7.5/gradle-7.5.jar -O gradle/wrapper/gradle-wrapper.jar
+          
+          # Создаем gradle-wrapper.properties
+          cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          EOF
           
           # Создаем AndroidManifest.xml
           cat << 'EOF' > app/src/main/AndroidManifest.xml
@@ -162,16 +171,7 @@ jobs:
           // Root build.gradle
           EOF
           
-          # Создаем gradle-wrapper.properties
-          cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
-          distributionBase=GRADLE_USER_HOME
-          distributionPath=wrapper/dists
-          distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
-          zipStoreBase=GRADLE_USER_HOME
-          zipStorePath=wrapper/dists
-          EOF
-          
-      - name: Download Gradle Wrapper
+      - name: Download Gradle Wrapper Script
         run: |
           wget -q https://raw.githubusercontent.com/gradle/gradle/master/gradlew
           chmod +x gradlew
