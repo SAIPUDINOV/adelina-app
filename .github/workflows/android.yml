@@ -18,165 +18,107 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    - name: Create project structure
+    - name: Install wget
+      run: sudo apt-get update && sudo apt-get install -y wget
+    
+    - name: Create project files
       run: |
+        # Создаем папки
         mkdir -p app/src/main/java/com/adelina/app/
         mkdir -p app/src/main/res/layout/
         mkdir -p gradle/wrapper/
-    
-    - name: Download gradle wrapper
-      run: |
-        wget -q https://repo.maven.apache.org/maven2/org/gradle/gradle/7.5/gradle-7.5.jar -O gradle/wrapper/gradle-wrapper.jar
         
-        cat > gradle/wrapper/gradle-wrapper.properties << 'END'
-        distributionBase=GRADLE_USER_HOME
-        distributionPath=wrapper/dists
-        distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
-        zipStoreBase=GRADLE_USER_HOME
-        zipStorePath=wrapper/dists
-        END
-    
-    - name: Create AndroidManifest.xml
-      run: |
-        cat > app/src/main/AndroidManifest.xml << 'END'
-        <?xml version="1.0" encoding="utf-8"?>
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-            package="com.adelina.app">
+        # Создаем gradle-wrapper.properties
+        echo 'distributionBase=GRADLE_USER_HOME' > gradle/wrapper/gradle-wrapper.properties
+        echo 'distributionPath=wrapper/dists' >> gradle/wrapper/gradle-wrapper.properties
+        echo 'distributionUrl=https://services.gradle.org/distributions/gradle-7.5-bin.zip' >> gradle/wrapper/gradle-wrapper.properties
+        echo 'zipStoreBase=GRADLE_USER_HOME' >> gradle/wrapper/gradle-wrapper.properties
+        echo 'zipStorePath=wrapper/dists' >> gradle/wrapper/gradle-wrapper.properties
         
-          <uses-permission android:name="android.permission.INTERNET" />
-        
-          <application
-              android:allowBackup="true"
-              android:icon="@mipmap/ic_launcher"
-              android:label="Adelina Space"
-              android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
-        
-            <activity
-                android:name=".MainActivity"
-                android:exported="true">
+        # Создаем AndroidManifest.xml
+        echo '<?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <uses-permission android:name="android.permission.INTERNET"/>
+          <application android:label="Adelina Space">
+            <activity android:name=".MainActivity" android:exported="true">
               <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
               </intent-filter>
             </activity>
-        
           </application>
-        </manifest>
-        END
-    
-    - name: Create MainActivity.java
-      run: |
-        cat > app/src/main/java/com/adelina/app/MainActivity.java << 'END'
-        package com.adelina.app;
+        </manifest>' > app/src/main/AndroidManifest.xml
         
+        # Создаем layout
+        echo '<?xml version="1.0" encoding="utf-8"?>
+        <WebView xmlns:android="http://schemas.android.com/apk/res/android"
+          android:id="@+id/webview"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"/>' > app/src/main/res/layout/activity_main.xml
+        
+        # Создаем Activity
+        echo 'package com.adelina.app;
+        import android.app.Activity;
         import android.os.Bundle;
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
-        import androidx.appcompat.app.AppCompatActivity;
         
-        public class MainActivity extends AppCompatActivity {
-            @Override
-            protected void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
-                setContentView(R.layout.activity_main);
-                
-                WebView webView = findViewById(R.id.webView);
-                webView.getSettings().setJavaScriptEnabled(true);
-                webView.setWebViewClient(new WebViewClient());
-                webView.loadUrl("https://adelina.space/home.aspx");
-            }
-            
-            @Override
-            public void onBackPressed() {
-                WebView webView = findViewById(R.id.webView);
-                if (webView.canGoBack()) {
-                    webView.goBack();
-                } else {
-                    super.onBackPressed();
-                }
-            }
-        }
-        END
-    
-    - name: Create activity_main.xml
-      run: |
-        cat > app/src/main/res/layout/activity_main.xml << 'END'
-        <?xml version="1.0" encoding="utf-8"?>
-        <WebView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/webView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-        END
-    
-    - name: Create build.gradle
-      run: |
-        cat > app/build.gradle << 'END'
-        buildscript {
-            repositories {
-                google()
-                mavenCentral()
-            }
-            dependencies {
-                classpath 'com.android.tools.build:gradle:7.4.2'
-            }
+        public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            WebView webView = findViewById(R.id.webview);
+            webView.getSettings().setJavaScriptEnabled(true);
+            webView.setWebViewClient(new WebViewClient());
+            webView.loadUrl("https://adelina.space/home.aspx");
+          }
+        }' > app/src/main/java/com/adelina/app/MainActivity.java
+        
+        # Создаем build.gradle
+        echo 'buildscript {
+          repositories {
+            google()
+            mavenCentral()
+          }
+          dependencies {
+            classpath "com.android.tools.build:gradle:4.2.2"
+          }
         }
         
-        apply plugin: 'com.android.application'
+        apply plugin: "com.android.application"
         
         android {
-            compileSdk 33
-            
-            defaultConfig {
-                applicationId "com.adelina.app"
-                minSdk 21
-                targetSdk 33
-                versionCode 1
-                versionName "1.0"
+          compileSdkVersion 33
+          buildToolsVersion "33.0.0"
+          
+          defaultConfig {
+            applicationId "com.adelina.app"
+            minSdkVersion 21
+            targetSdkVersion 33
+            versionCode 1
+            versionName "1.0"
+          }
+          
+          buildTypes {
+            release {
+              minifyEnabled false
             }
-            
-            buildTypes {
-                release {
-                    minifyEnabled false
-                }
-            }
+          }
         }
         
         dependencies {
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-        }
-        END
-    
-    - name: Create settings.gradle
-      run: |
-        cat > settings.gradle << 'END'
-        pluginManagement {
-            repositories {
-                google()
-                mavenCentral()
-                gradlePluginPortal()
-            }
-        }
+          implementation "androidx.appcompat:appcompat:1.6.1"
+        }' > app/build.gradle
         
-        dependencyResolutionManagement {
-            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-            repositories {
-                google()
-                mavenCentral()
-            }
-        }
-        
-        rootProject.name = "AdelinaApp"
-        include ':app'
-        END
+        echo 'include ":app"' > settings.gradle
     
-    - name: Download gradlew
+    - name: Build with gradle
       run: |
-        wget -q https://raw.githubusercontent.com/gradle/gradle/master/gradlew
-        chmod +x gradlew
-    
-    - name: Build APK
-      run: |
-        ./gradlew assembleDebug
+        # Используем gradle напрямую без wrapper
+        wget https://services.gradle.org/distributions/gradle-7.5-bin.zip
+        unzip gradle-7.5-bin.zip
+        ./gradle-7.5/bin/gradle -p . assembleDebug
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
