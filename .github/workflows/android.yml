@@ -49,7 +49,7 @@ jobs:
           android:layout_width="match_parent"
           android:layout_height="match_parent"/>' > app/src/main/res/layout/activity_main.xml
         
-        # Создаем Activity БЕЗ AndroidX (используем старый API)
+        # Создаем Activity
         echo 'package com.adelina.app;
         import android.app.Activity;
         import android.os.Bundle;
@@ -68,7 +68,7 @@ jobs:
           }
         }' > app/src/main/java/com/adelina/app/MainActivity.java
         
-        # Создаем build.gradle БЕЗ AndroidX зависимостей
+        # Создаем build.gradle с правильными комментариями
         echo 'plugins {
           id "com.android.application"
         }
@@ -93,7 +93,7 @@ jobs:
         }
         
         dependencies {
-          # Без AndroidX - используем старую поддержку
+          // Без AndroidX - используем старую поддержку
           implementation fileTree(dir: "libs", include: ["*.jar"])
         }' > app/build.gradle
         
