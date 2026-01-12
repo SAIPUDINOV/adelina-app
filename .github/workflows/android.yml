@@ -5,52 +5,52 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Java
+        
+      - name: Setup Java 17 (Required for Android SDK)
         uses: actions/setup-java@v4
         with:
-          java-version: "11"
-          distribution: "temurin"
-
-      - name: Setup Android SDK
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: Setup Android SDK with JDK 17
         uses: android-actions/setup-android@v3
-
-      - name: Create project structure
+        with:
+          jdk-version: '17'
+          
+      - name: Accept Android Licenses
         run: |
-          # Создаем структуру папок
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        
+      - name: Create Android project
+        run: |
+          # Create project structure
           mkdir -p app/src/main/java/com/adelina/space/
           mkdir -p app/src/main/res/layout/
           mkdir -p app/src/main/res/values/
-          mkdir -p gradle/wrapper/
-
-          # Создаем AndroidManifest.xml
+          
+          # Create AndroidManifest.xml
           cat > app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
               package="com.adelina.space">
-          
+            
             <uses-permission android:name="android.permission.INTERNET" />
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-          
+            
             <application
                 android:allowBackup="true"
                 android:icon="@mipmap/ic_launcher"
                 android:label="Adelina Space"
                 android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-                android:usesCleartextTraffic="true"
-                tools:targetApi="31">
-          
+                android:usesCleartextTraffic="true">
+              
               <activity
                   android:name=".MainActivity"
                   android:exported="true"
@@ -61,52 +61,55 @@ jobs:
                   <category android:name="android.intent.category.LAUNCHER" />
                 </intent-filter>
               </activity>
-          
+              
             </application>
           </manifest>
           EOF
-
-          # Создаем MainActivity.kt
+          
+          # Create MainActivity.kt
           cat > app/src/main/java/com/adelina/space/MainActivity.kt << 'EOF'
           package com.adelina.space
-
+          
           import android.annotation.SuppressLint
           import android.os.Bundle
           import android.webkit.WebView
           import android.webkit.WebViewClient
           import androidx.appcompat.app.AppCompatActivity
-
+          
           class MainActivity : AppCompatActivity() {
               @SuppressLint("SetJavaScriptEnabled")
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
                   setContentView(R.layout.activity_main)
-          
+                  
                   val webView: WebView = findViewById(R.id.webView)
-          
-                  # Включаем JavaScript
+                  
+                  // Enable JavaScript
                   webView.settings.javaScriptEnabled = true
                   webView.settings.domStorageEnabled = true
                   webView.settings.loadWithOverviewMode = true
                   webView.settings.useWideViewPort = true
-          
-                  # User-Agent для мобильного устройства
-                  webView.settings.userAgentString = "Mozilla/5.0 (Linux; Android 10) " +
-                                                    "AppleWebKit/537.36 (KHTML, like Gecko) " +
-                                                    "Chrome/91.0.4472.120 Mobile Safari/537.36"
-          
+                  
+                  // Mobile user agent
+                  webView.settings.userAgentString = 
+                      "Mozilla/5.0 (Linux; Android 10) " +
+                      "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                      "Chrome/91.0.4472.120 Mobile Safari/537.36"
+                  
                   webView.webViewClient = object : WebViewClient() {
-                      override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                          # Всегда загружать в WebView
+                      override fun shouldOverrideUrlLoading(
+                          view: WebView?,
+                          url: String?
+                      ): Boolean {
                           return false
                       }
                   }
-          
-                  # Загружаем сайт Adelina Space
+                  
+                  // Load Adelina Space website
                   webView.loadUrl("https://adelina.space/home.aspx")
               }
-          
-              # Обработка кнопки "Назад"
+              
+              // Handle back button
               override fun onBackPressed() {
                   val webView: WebView = findViewById(R.id.webView)
                   if (webView.canGoBack()) {
@@ -117,47 +120,35 @@ jobs:
               }
           }
           EOF
-
-          # Создаем activity_main.xml
+          
+          # Create activity_main.xml
           cat > app/src/main/res/layout/activity_main.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <androidx.constraintlayout.widget.ConstraintLayout 
-              xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
+          <WebView xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/webView"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
-          
-            <WebView
-                android:id="@+id/webView"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-          
-          </androidx.constraintlayout.widget.ConstraintLayout>
+              android:layout_height="match_parent" />
           EOF
-
-          # Создаем strings.xml
+          
+          # Create strings.xml
           cat > app/src/main/res/values/strings.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-            <string name="app_name">Adelina Space</string>
+              <string name="app_name">Adelina Space</string>
           </resources>
           EOF
-
-          # Создаем app/build.gradle
+          
+          # Create app/build.gradle
           cat > app/build.gradle << 'EOF'
           plugins {
               id 'com.android.application'
               id 'org.jetbrains.kotlin.android'
           }
-
+          
           android {
               namespace 'com.adelina.space'
               compileSdk 34
-
+              
               defaultConfig {
                   applicationId "com.adelina.space"
                   minSdk 21
@@ -165,59 +156,55 @@ jobs:
                   versionCode 1
                   versionName "1.0"
               }
-
+              
               buildTypes {
                   release {
                       minifyEnabled false
-                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
                   }
               }
-          
+              
               compileOptions {
-                  sourceCompatibility JavaVersion.VERSION_1_8
-                  targetCompatibility JavaVersion.VERSION_1_8
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
               }
-          
+              
               kotlinOptions {
-                  jvmTarget = '1.8'
+                  jvmTarget = '17'
               }
           }
-
+          
           dependencies {
               implementation 'androidx.core:core-ktx:1.12.0'
               implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'com.google.android.material:material:1.10.0'
-              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
           }
           EOF
-
-          # Создаем корневой build.gradle
+          
+          # Create root build.gradle
           cat > build.gradle << 'EOF'
           buildscript {
-              ext.kotlin_version = '1.9.0'
               repositories {
                   google()
                   mavenCentral()
               }
               dependencies {
                   classpath 'com.android.tools.build:gradle:8.1.2'
-                  classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+                  classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0'
               }
           }
-
+          
           allprojects {
               repositories {
                   google()
                   mavenCentral()
               }
           }
-
+          
           task clean(type: Delete) {
               delete rootProject.buildDir
           }
           EOF
-
-          # Создаем settings.gradle
+          
+          # Create settings.gradle
           cat > settings.gradle << 'EOF'
           pluginManagement {
               repositories {
@@ -226,6 +213,7 @@ jobs:
                   gradlePluginPortal()
               }
           }
+          
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
               repositories {
@@ -233,12 +221,13 @@ jobs:
                   mavenCentral()
               }
           }
-
+          
           rootProject.name = "AdelinaSpace"
           include ':app'
           EOF
-
-          # Создаем gradle-wrapper.properties
+          
+          # Create gradle wrapper properties
+          mkdir -p gradle/wrapper
           cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
           distributionBase=GRADLE_USER_HOME
           distributionPath=wrapper/dists
@@ -246,18 +235,18 @@ jobs:
           zipStoreBase=GRADLE_USER_HOME
           zipStorePath=wrapper/dists
           EOF
-
+          
       - name: Download Gradle Wrapper
         run: |
-          curl -L https://raw.githubusercontent.com/gradle/gradle/master/gradlew -o gradlew
+          wget -q https://raw.githubusercontent.com/gradle/gradle/master/gradlew
           chmod +x gradlew
-
+          
       - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace --no-daemon
-
+        run: |
+          ./gradlew assembleDebug --no-daemon --stacktrace
+          
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AdelinaSpace-APK
+          name: Adelina-App
           path: app/build/outputs/apk/debug/*.apk
-          retention-days: 7
