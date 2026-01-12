@@ -22,30 +22,22 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         
-      - name: Accept Android Licenses
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-        
-      - name: Install Android Components
-        run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-        
       - name: Create Android Project
         run: |
-          # Create complete project structure
+          # Create project structure
           mkdir -p app/src/main/java/com/adelina/space/
           mkdir -p app/src/main/res/layout/
           mkdir -p app/src/main/res/values/
           mkdir -p gradle/wrapper/
           
           # Download gradle-wrapper.jar
-          wget https://github.com/gradle/gradle/raw/master/gradle/wrapper/gradle-wrapper.jar -O gradle/wrapper/gradle-wrapper.jar
+          wget -q https://github.com/gradle/gradle/raw/master/gradle/wrapper/gradle-wrapper.jar -O gradle/wrapper/gradle-wrapper.jar
           
           # Create gradle-wrapper.properties
           cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
           distributionBase=GRADLE_USER_HOME
           distributionPath=wrapper/dists
-          distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
+          distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
           zipStoreBase=GRADLE_USER_HOME
           zipStorePath=wrapper/dists
           EOF
@@ -77,26 +69,39 @@ jobs:
           </manifest>
           EOF
           
-          # Create MainActivity.kt
-          cat > app/src/main/java/com/adelina/space/MainActivity.kt << 'EOF'
-          package com.adelina.space
+          # Create MainActivity.java (используем Java вместо Kotlin для простоты)
+          cat > app/src/main/java/com/adelina/space/MainActivity.java << 'EOF'
+          package com.adelina.space;
           
-          import android.annotation.SuppressLint
-          import android.os.Bundle
-          import android.webkit.WebView
-          import android.webkit.WebViewClient
-          import androidx.appcompat.app.AppCompatActivity
+          import android.os.Bundle;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import androidx.appcompat.app.AppCompatActivity;
           
-          class MainActivity : AppCompatActivity() {
-              @SuppressLint("SetJavaScriptEnabled")
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  super.onCreate(savedInstanceState)
-                  setContentView(R.layout.activity_main)
+          public class MainActivity extends AppCompatActivity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
                   
-                  val webView = findViewById<WebView>(R.id.webView)
-                  webView.settings.javaScriptEnabled = true
-                  webView.webViewClient = WebViewClient()
-                  webView.loadUrl("https://adelina.space/home.aspx")
+                  WebView webView = findViewById(R.id.webView);
+                  WebSettings settings = webView.getSettings();
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  
+                  webView.setWebViewClient(new WebViewClient());
+                  webView.loadUrl("https://adelina.space/home.aspx");
+              }
+              
+              @Override
+              public void onBackPressed() {
+                  WebView webView = findViewById(R.id.webView);
+                  if (webView.canGoBack()) {
+                      webView.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
               }
           }
           EOF
@@ -104,17 +109,22 @@ jobs:
           # Create activity_main.xml
           cat > app/src/main/res/layout/activity_main.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          <androidx.constraintlayout.widget.ConstraintLayout 
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical">
+              android:layout_height="match_parent">
             
             <WebView
                 android:id="@+id/webView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
                 
-          </LinearLayout>
+          </androidx.constraintlayout.widget.ConstraintLayout>
           EOF
           
           # Create strings.xml
@@ -125,21 +135,20 @@ jobs:
           </resources>
           EOF
           
-          # Create app/build.gradle
+          # Create app/build.gradle - ИСПРАВЛЕННЫЙ ВАРИАНТ
           cat > app/build.gradle << 'EOF'
           plugins {
               id 'com.android.application'
-              id 'org.jetbrains.kotlin.android'
           }
           
           android {
               namespace 'com.adelina.space'
-              compileSdk 34
+              compileSdk 33
               
               defaultConfig {
                   applicationId "com.adelina.space"
                   minSdk 21
-                  targetSdk 34
+                  targetSdk 33
                   versionCode 1
                   versionName "1.0"
               }
@@ -147,6 +156,7 @@ jobs:
               buildTypes {
                   release {
                       minifyEnabled false
+                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
                   }
               }
               
@@ -154,55 +164,26 @@ jobs:
                   sourceCompatibility JavaVersion.VERSION_1_8
                   targetCompatibility JavaVersion.VERSION_1_8
               }
-              
-              kotlinOptions {
-                  jvmTarget = '1.8'
-              }
           }
           
           dependencies {
-              implementation 'androidx.core:core-ktx:1.10.1'
               implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
           }
           EOF
           
-          # Create build.gradle (root)
-          cat > build.gradle << 'EOF'
-          buildscript {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath 'com.android.tools.build:gradle:8.1.2'
-                  classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0'
-              }
-          }
-          
-          allprojects {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
-          
-          task clean(type: Delete) {
-              delete rootProject.buildDir
-          }
-          EOF
-          
-          # Create settings.gradle
+          # Create settings.gradle - ИСПРАВЛЕННЫЙ ВАРИАНТ
           cat > settings.gradle << 'EOF'
           pluginManagement {
               repositories {
+                  gradlePluginPortal()
                   google()
                   mavenCentral()
-                  gradlePluginPortal()
               }
           }
           
           dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
               repositories {
                   google()
                   mavenCentral()
@@ -213,14 +194,18 @@ jobs:
           include ':app'
           EOF
           
+          # Create build.gradle (root) - ПУСТОЙ или простой
+          cat > build.gradle << 'EOF'
+          // Empty build.gradle - все настройки в settings.gradle
+          EOF
+          
       - name: Download Gradle Wrapper Script
         run: |
-          wget https://raw.githubusercontent.com/gradle/gradle/master/gradlew
+          wget -q https://raw.githubusercontent.com/gradle/gradle/master/gradlew
           chmod +x gradlew
           
       - name: Build APK
         run: |
-          chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
           
       - name: Upload APK
