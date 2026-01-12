@@ -1,9 +1,6 @@
-name: Build Android APK
+name: Simple APK Build
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
+on: [workflow_dispatch]
 
 jobs:
   build:
@@ -12,22 +9,22 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup Java 17
+    - name: Setup Java
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '11'
         distribution: 'temurin'
     
-    - name: Install wget
-      run: sudo apt-get update && sudo apt-get install -y wget
-    
-    - name: Create project files
+    - name: Create minimal project
       run: |
-        # Создаем папки
+        # Создаем проект без AndroidX
         mkdir -p app/src/main/java/com/adelina/app/
         mkdir -p app/src/main/res/layout/
         
-        # Создаем AndroidManifest.xml
+        # gradle.properties
+        echo 'android.useAndroidX=true' > gradle.properties
+        
+        # Manifest
         echo '<?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
           <uses-permission android:name="android.permission.INTERNET"/>
@@ -41,86 +38,56 @@ jobs:
           </application>
         </manifest>' > app/src/main/AndroidManifest.xml
         
-        # Создаем layout
+        # Layout
         echo '<?xml version="1.0" encoding="utf-8"?>
         <WebView xmlns:android="http://schemas.android.com/apk/res/android"
           android:id="@+id/webview"
           android:layout_width="match_parent"
           android:layout_height="match_parent"/>' > app/src/main/res/layout/activity_main.xml
         
-        # Создаем Activity
+        # Activity без зависимостей
         echo 'package com.adelina.app;
         import android.app.Activity;
         import android.os.Bundle;
         import android.webkit.WebView;
-        import android.webkit.WebViewClient;
         
         public class MainActivity extends Activity {
           @Override
           protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_main);
-            WebView webView = findViewById(R.id.webview);
+            WebView webView = new WebView(this);
             webView.getSettings().setJavaScriptEnabled(true);
-            webView.setWebViewClient(new WebViewClient());
             webView.loadUrl("https://adelina.space/home.aspx");
+            setContentView(webView);
           }
         }' > app/src/main/java/com/adelina/app/MainActivity.java
         
-        # Создаем build.gradle с правильной версией Gradle
-        echo 'buildscript {
-          repositories {
-            google()
-            mavenCentral()
-          }
-          dependencies {
-            classpath "com.android.tools.build:gradle:8.1.2"
-          }
+        # Простой build.gradle
+        echo 'plugins {
+          id "com.android.application"
         }
         
-        apply plugin: "com.android.application"
-        
         android {
-          namespace "com.adelina.app"
-          compileSdk 34
+          compileSdk 33
           
           defaultConfig {
             applicationId "com.adelina.app"
             minSdk 21
-            targetSdk 34
-            versionCode 1
-            versionName "1.0"
-          }
-          
-          buildTypes {
-            release {
-              minifyEnabled false
-            }
-          }
-          
-          compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+            targetSdk 33
           }
         }
         
-        dependencies {
-          implementation "androidx.appcompat:appcompat:1.6.1"
-        }' > app/build.gradle
+        dependencies {}' > app/build.gradle
         
         echo 'include ":app"' > settings.gradle
     
-    - name: Build with Gradle 8.2
+    - name: Build
       run: |
-        # Скачиваем Gradle 8.2
-        wget https://services.gradle.org/distributions/gradle-8.2-bin.zip
-        unzip gradle-8.2-bin.zip
-        
-        # Собираем APK
-        ./gradle-8.2/bin/gradle assembleDebug
+        wget https://services.gradle.org/distributions/gradle-7.5-bin.zip
+        unzip gradle-7.5-bin.zip
+        ./gradle-7.5/bin/gradle assembleDebug
     
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
         name: Adelina-App
         path: app/build/outputs/apk/debug/*.apk
