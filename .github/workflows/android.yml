@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: write
@@ -11,253 +11,253 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      
-    - name: Create project structure
-      run: |
-        # Создаем структуру папок
-        mkdir -p app/src/main/java/com/adelina/space/
-        mkdir -p app/src/main/res/layout/
-        mkdir -p app/src/main/res/values/
-        mkdir -p gradle/wrapper/
-        
-        # Создаем AndroidManifest.xml
-        cat > app/src/main/AndroidManifest.xml << 'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.adelina.space">
-    
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="Adelina Space"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-        android:usesCleartextTraffic="true"
-        tools:targetApi="31">
-        
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        
-    </application>
-</manifest>
-EOF
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        # Создаем MainActivity.kt
-        cat > app/src/main/java/com/adelina/space/MainActivity.kt << 'EOF'
-package com.adelina.space
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "11"
+          distribution: "temurin"
 
-import android.annotation.SuppressLint
-import android.os.Bundle
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import androidx.appcompat.app.AppCompatActivity
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-class MainActivity : AppCompatActivity() {
-    @SuppressLint("SetJavaScriptEnabled")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        
-        val webView: WebView = findViewById(R.id.webView)
-        
-        // Включаем JavaScript
-        webView.settings.javaScriptEnabled = true
-        webView.settings.domStorageEnabled = true
-        webView.settings.loadWithOverviewMode = true
-        webView.settings.useWideViewPort = true
-        
-        // User-Agent для мобильного устройства
-        webView.settings.userAgentString = "Mozilla/5.0 (Linux; Android 10) " +
-                                          "AppleWebKit/537.36 (KHTML, like Gecko) " +
-                                          "Chrome/91.0.4472.120 Mobile Safari/537.36"
-        
-        webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                // Всегда загружать в WebView
-                return false
-            }
-        }
-        
-        // Загружаем сайт Adelina Space
-        webView.loadUrl("https://adelina.space/home.aspx")
-    }
-    
-    // Обработка кнопки "Назад"
-    override fun onBackPressed() {
-        val webView: WebView = findViewById(R.id.webView)
-        if (webView.canGoBack()) {
-            webView.goBack()
-        } else {
-            super.onBackPressed()
-        }
-    }
-}
-EOF
+      - name: Create project structure
+        run: |
+          # Создаем структуру папок
+          mkdir -p app/src/main/java/com/adelina/space/
+          mkdir -p app/src/main/res/layout/
+          mkdir -p app/src/main/res/values/
+          mkdir -p gradle/wrapper/
 
-        # Создаем activity_main.xml
-        cat > app/src/main/res/layout/activity_main.xml << 'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    
-    <WebView
-        android:id="@+id/webView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-        
-</androidx.constraintlayout.widget.ConstraintLayout>
-EOF
+          # Создаем AndroidManifest.xml
+          cat > app/src/main/AndroidManifest.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              package="com.adelina.space">
+          
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+          
+            <application
+                android:allowBackup="true"
+                android:icon="@mipmap/ic_launcher"
+                android:label="Adelina Space"
+                android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+                android:usesCleartextTraffic="true"
+                tools:targetApi="31">
+          
+              <activity
+                  android:name=".MainActivity"
+                  android:exported="true"
+                  android:configChanges="orientation|screenSize|keyboardHidden"
+                  android:windowSoftInputMode="adjustResize">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN" />
+                  <category android:name="android.intent.category.LAUNCHER" />
+                </intent-filter>
+              </activity>
+          
+            </application>
+          </manifest>
+          EOF
 
-        # Создаем strings.xml
-        cat > app/src/main/res/values/strings.xml << 'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Adelina Space</string>
-</resources>
-EOF
+          # Создаем MainActivity.kt
+          cat > app/src/main/java/com/adelina/space/MainActivity.kt << 'EOF'
+          package com.adelina.space
 
-        # Создаем app/build.gradle
-        cat > app/build.gradle << 'EOF'
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-}
+          import android.annotation.SuppressLint
+          import android.os.Bundle
+          import android.webkit.WebView
+          import android.webkit.WebViewClient
+          import androidx.appcompat.app.AppCompatActivity
 
-android {
-    namespace 'com.adelina.space'
-    compileSdk 34
+          class MainActivity : AppCompatActivity() {
+              @SuppressLint("SetJavaScriptEnabled")
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  setContentView(R.layout.activity_main)
+          
+                  val webView: WebView = findViewById(R.id.webView)
+          
+                  # Включаем JavaScript
+                  webView.settings.javaScriptEnabled = true
+                  webView.settings.domStorageEnabled = true
+                  webView.settings.loadWithOverviewMode = true
+                  webView.settings.useWideViewPort = true
+          
+                  # User-Agent для мобильного устройства
+                  webView.settings.userAgentString = "Mozilla/5.0 (Linux; Android 10) " +
+                                                    "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                                                    "Chrome/91.0.4472.120 Mobile Safari/537.36"
+          
+                  webView.webViewClient = object : WebViewClient() {
+                      override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                          # Всегда загружать в WebView
+                          return false
+                      }
+                  }
+          
+                  # Загружаем сайт Adelina Space
+                  webView.loadUrl("https://adelina.space/home.aspx")
+              }
+          
+              # Обработка кнопки "Назад"
+              override fun onBackPressed() {
+                  val webView: WebView = findViewById(R.id.webView)
+                  if (webView.canGoBack()) {
+                      webView.goBack()
+                  } else {
+                      super.onBackPressed()
+                  }
+              }
+          }
+          EOF
 
-    defaultConfig {
-        applicationId "com.adelina.space"
-        minSdk 21
-        targetSdk 34
-        versionCode 1
-        versionName "1.0"
-    }
+          # Создаем activity_main.xml
+          cat > app/src/main/res/layout/activity_main.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <androidx.constraintlayout.widget.ConstraintLayout 
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+          
+            <WebView
+                android:id="@+id/webView"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+          
+          </androidx.constraintlayout.widget.ConstraintLayout>
+          EOF
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-    
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-    
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-}
+          # Создаем strings.xml
+          cat > app/src/main/res/values/strings.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+            <string name="app_name">Adelina Space</string>
+          </resources>
+          EOF
 
-dependencies {
-    implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.10.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-}
-EOF
+          # Создаем app/build.gradle
+          cat > app/build.gradle << 'EOF'
+          plugins {
+              id 'com.android.application'
+              id 'org.jetbrains.kotlin.android'
+          }
 
-        # Создаем корневой build.gradle
-        cat > build.gradle << 'EOF'
-buildscript {
-    ext.kotlin_version = '1.9.0'
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
+          android {
+              namespace 'com.adelina.space'
+              compileSdk 34
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
+              defaultConfig {
+                  applicationId "com.adelina.space"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
-EOF
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                  }
+              }
+          
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_1_8
+                  targetCompatibility JavaVersion.VERSION_1_8
+              }
+          
+              kotlinOptions {
+                  jvmTarget = '1.8'
+              }
+          }
 
-        # Создаем settings.gradle
-        cat > settings.gradle << 'EOF'
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
+          dependencies {
+              implementation 'androidx.core:core-ktx:1.12.0'
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.10.0'
+              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+          }
+          EOF
 
-rootProject.name = "AdelinaSpace"
-include ':app'
-EOF
+          # Создаем корневой build.gradle
+          cat > build.gradle << 'EOF'
+          buildscript {
+              ext.kotlin_version = '1.9.0'
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:8.1.2'
+                  classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+              }
+          }
 
-        # Создаем gradle-wrapper.properties
-        cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
-distributionBase=GRADLE_USER_HOME
-distributionPath=wrapper/dists
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
-zipStoreBase=GRADLE_USER_HOME
-zipStorePath=wrapper/dists
-EOF
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
 
-    - name: Download Gradle Wrapper
-      run: |
-        curl -L https://raw.githubusercontent.com/gradle/gradle/master/gradlew -o gradlew
-        chmod +x gradlew
-        
-    - name: Build APK
-      run: ./gradlew assembleDebug --stacktrace --no-daemon
-      
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: AdelinaSpace-APK
-        path: app/build/outputs/apk/debug/*.apk
-        retention-days: 7
+          task clean(type: Delete) {
+              delete rootProject.buildDir
+          }
+          EOF
+
+          # Создаем settings.gradle
+          cat > settings.gradle << 'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "AdelinaSpace"
+          include ':app'
+          EOF
+
+          # Создаем gradle-wrapper.properties
+          cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          EOF
+
+      - name: Download Gradle Wrapper
+        run: |
+          curl -L https://raw.githubusercontent.com/gradle/gradle/master/gradlew -o gradlew
+          chmod +x gradlew
+
+      - name: Build APK
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AdelinaSpace-APK
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 7
