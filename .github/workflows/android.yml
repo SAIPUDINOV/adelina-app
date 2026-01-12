@@ -22,18 +22,26 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         
+      - name: Accept Android Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        
+      - name: Install Android Build Tools
+        run: |
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.2"
+        
       - name: Create Android Project
         run: |
-          # Create project structure
+          # Создаем структуру проекта
           mkdir -p app/src/main/java/com/adelina/space/
           mkdir -p app/src/main/res/layout/
           mkdir -p app/src/main/res/values/
           mkdir -p gradle/wrapper/
           
-          # Download gradle-wrapper.jar
-          wget -q https://github.com/gradle/gradle/raw/master/gradle/wrapper/gradle-wrapper.jar -O gradle/wrapper/gradle-wrapper.jar
+          # Скачиваем gradle-wrapper.jar
+          wget -q https://repo.maven.apache.org/maven2/org/gradle/gradle/7.5/gradle-7.5.jar -O gradle/wrapper/gradle-wrapper.jar
           
-          # Create gradle-wrapper.properties
+          # Создаем gradle-wrapper.properties
           cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
           distributionBase=GRADLE_USER_HOME
           distributionPath=wrapper/dists
@@ -42,7 +50,7 @@ jobs:
           zipStorePath=wrapper/dists
           EOF
           
-          # Create AndroidManifest.xml
+          # Создаем AndroidManifest.xml
           cat > app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -69,7 +77,7 @@ jobs:
           </manifest>
           EOF
           
-          # Create MainActivity.java (используем Java вместо Kotlin для простоты)
+          # Создаем MainActivity.java
           cat > app/src/main/java/com/adelina/space/MainActivity.java << 'EOF'
           package com.adelina.space;
           
@@ -106,28 +114,23 @@ jobs:
           }
           EOF
           
-          # Create activity_main.xml
+          # Создаем activity_main.xml
           cat > app/src/main/res/layout/activity_main.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <androidx.constraintlayout.widget.ConstraintLayout 
-              xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="match_parent"
+              android:orientation="vertical">
             
             <WebView
                 android:id="@+id/webView"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
                 
-          </androidx.constraintlayout.widget.ConstraintLayout>
+          </LinearLayout>
           EOF
           
-          # Create strings.xml
+          # Создаем strings.xml
           cat > app/src/main/res/values/strings.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
@@ -135,14 +138,21 @@ jobs:
           </resources>
           EOF
           
-          # Create app/build.gradle - ИСПРАВЛЕННЫЙ ВАРИАНТ
+          # Создаем app/build.gradle - ИСПРАВЛЕННАЯ ВЕРСИЯ
           cat > app/build.gradle << 'EOF'
-          plugins {
-              id 'com.android.application'
+          buildscript {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:7.4.2'
+              }
           }
           
+          apply plugin: 'com.android.application'
+          
           android {
-              namespace 'com.adelina.space'
               compileSdk 33
               
               defaultConfig {
@@ -156,7 +166,6 @@ jobs:
               buildTypes {
                   release {
                       minifyEnabled false
-                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
                   }
               }
               
@@ -168,11 +177,10 @@ jobs:
           
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
           }
           EOF
           
-          # Create settings.gradle - ИСПРАВЛЕННЫЙ ВАРИАНТ
+          # Создаем settings.gradle - ИСПРАВЛЕННАЯ ВЕРСИЯ
           cat > settings.gradle << 'EOF'
           pluginManagement {
               repositories {
@@ -183,7 +191,7 @@ jobs:
           }
           
           dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
               repositories {
                   google()
                   mavenCentral()
@@ -194,9 +202,10 @@ jobs:
           include ':app'
           EOF
           
-          # Create build.gradle (root) - ПУСТОЙ или простой
+          # Создаем build.gradle (root) - ПРОСТОЙ ВАРИАНТ
           cat > build.gradle << 'EOF'
-          // Empty build.gradle - все настройки в settings.gradle
+          // Этот файл может быть пустым
+          // Все настройки в settings.gradle
           EOF
           
       - name: Download Gradle Wrapper Script
